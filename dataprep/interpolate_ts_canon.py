@@ -14,10 +14,12 @@ def get_ms_from_str(ts_str):
     return ms
 
 
-path=r'D:\hand_depth_dataset\kinect'
+path=r'D:\hand_depth_dataset\canon'
 files=os.listdir(path)
 for f in files:
+    print('processing',f)
     visual_ts_path=os.path.join(path,f,'visual_ts.txt')
+    int_ts_path=os.path.join(path,f,'interpolated_ts.txt')
     with open(visual_ts_path, 'r') as file:
         lines = file.readlines()
         visual_ts=[x.strip() for x in lines]
@@ -26,22 +28,27 @@ for f in files:
         ms1=get_ms_from_str(ts1)
         ms2=get_ms_from_str(ts2)
         #read all files from the dir
-        all_files=os.listdir(os.path.join(path,f,'color'))
+        all_files=os.listdir(os.path.join(path,f))
+        all_files = [k for k in all_files if k.endswith('jpg')]
+        all_files = [f.split('.')[0].zfill(5)+'.jpg' for f in all_files]
         all_files.sort()
         idx1=all_files.index(f1+'.jpg')
         idx2=all_files.index(f2+'.jpg')
-        ts_list=[np.nan]*len(all_files)
-        ts_list[idx1]=ms1
-        ts_list[idx2]=ms2
-        ts_list=np.array(ts_list)
 
-        valid_indices = np.where(~np.isnan(ts_list))[0]
-        valid_values = ts_list[valid_indices]
-        missing_indices = np.where(np.isnan(ts_list))[0]
-        interpolated_values = np.interp(missing_indices, valid_indices, valid_values)
-        ts_list[missing_indices] = interpolated_values
+        grad=(ms2-ms1)/(idx2-idx1)
+        arange=np.arange(0,len(all_files))
+        inter_vals=ms1+grad*(arange-idx1)
 
-        
+        #write the interpolates ts to file
+        interpolated_ts_dict = dict(zip(all_files, inter_vals))
+        with open(int_ts_path, 'w') as file:
+            for file_name, ts in interpolated_ts_dict.items():
+                file.write(f"{file_name} {ts}\n")
+
+
+
+
+
 
 
 
