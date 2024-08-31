@@ -78,7 +78,7 @@ def undistort_canon():
                 print('annotations already created for this dir. continuing...')
                 continue
 
-        imgs=os.listdir(dir)
+        imgs=[i for i in os.listdir(dir) if i.endswith('.jpg')]
         for img in imgs:
             rgb_img=cv2.imread(os.path.join(dir,img))  
             resized_img = cv2.resize(rgb_img, (COEFFICIENTS.CANON_ORIGINAL_SIZE[0], COEFFICIENTS.CANON_ORIGINAL_SIZE[1]))
